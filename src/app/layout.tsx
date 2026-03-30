@@ -7,12 +7,12 @@ import Navbar from '@/components/Navbar'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Kaaj AI — কাজ AI | Bengali AI Agent Platform',
-  description: 'Create powerful AI agents in Bengali. For shop owners, students, families, and communities across West Bengal and Bangladesh.',
-  keywords: 'Bengali AI, বাংলা AI, Kaaj AI, কাজ AI, Bengali chatbot, shop management AI, দোকান ম্যানেজার',
+  title: 'Sahayak AI — সহায়ক AI | বাংলার ব্যবসার বিশ্বস্ত সঙ্গী',
+  description: 'বাংলায় কথা বলুন, AI কাজ করবে। দোকান, ফার্মেসি, কোচিং সেন্টার, হোটেল — সব ব্যবসার জন্য AI এজেন্ট। West Bengal ও Bangladesh-এর জন্য তৈরি।',
+  keywords: 'Bengali AI, বাংলা AI, Sahayak AI, সহায়ক AI, Bengali chatbot, shop management AI, দোকান ম্যানেজার, ফার্মেসি সহায়ক, বাংলাদেশ AI, পশ্চিমবঙ্গ AI',
   openGraph: {
-    title: 'Kaaj AI — কাজ AI',
-    description: 'AI agents বাংলায়। দোকান, পড়াশোনা, পূজা, পরিবার — সব কাজে সাহায্য।',
+    title: 'Sahayak AI — সহায়ক AI',
+    description: 'বাংলার ব্যবসার বিশ্বস্ত সঙ্গী। বাংলায় বলুন, AI কাজ করবে।',
     type: 'website',
   },
 }
