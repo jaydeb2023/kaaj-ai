@@ -130,7 +130,7 @@ export default function AgentBuilderForm() {
         </div>
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => router.push('/library')}
+            onClick={() => router.push('/dashboard')}
             className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors"
           >
             এখনই চালান →
