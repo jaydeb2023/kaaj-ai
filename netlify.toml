@@ -4,3 +4,27 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+```
+
+**Step 3 — Commit changes** ✅
+
+---
+
+**Step 4 — GitHub এ নতুন file তৈরি করুন:**
+
+→ Root folder এ "Add file" → "Create new file"
+→ নাম:
+```
+public/_redirects
+```
+→ Content:
+```
+/*    /index.html   200
+```
+→ **Commit changes** ✅
+
+---
+
+**Step 5 — Netlify dashboard এ manually redeploy:**
+```
+https://app.netlify.com/sites/kaaj/deploys
