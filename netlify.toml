@@ -10,10 +10,4 @@
   to = "/.netlify/functions/___netlify-handler"
   status = 200
   force = true
-```
 
-**Commit changes** click করুন ✅
-
-তারপর `public/_redirects` file তৈরি করুন এই content দিয়ে:
-```
-/* /index.html 200
