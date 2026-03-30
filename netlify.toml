@@ -8,32 +8,3 @@
 [build.environment]
   NODE_VERSION = "18"
   NEXT_TELEMETRY_DISABLED = "1"
-```
-
-**Commit changes** ✅
-
----
-
-**তারপর Netlify dashboard এ যান:**
-```
-https://app.netlify.com/sites/kaaj/configuration/deploys
-```
-
-→ **Build settings** → **Edit settings**
-→ **Build command** পরিবর্তন করুন:
-```
-npm run build
-```
-→ **Publish directory:**
-```
-.next
-```
-→ **Save** ✅
-
-→ **Deploys** → **Trigger deploy** → **Clear cache and deploy site** click করুন
-
----
-
-Deploy হলে test করুন:
-```
-https://kaaj.netlify.app/agents/649e547a-9177-4aa1-ba8c-0bbdf77a1d45
