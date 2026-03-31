@@ -18,11 +18,12 @@ export function buildSystemPrompt(data: AgentFormData): string {
     health: 'Bengali healthcare: medicine reminders, doctor visits, health tracking',
     agriculture: 'Bengali farming: crop planning, market prices, weather, government schemes',
     other: 'General Bengali context',
+    service: 'Bengali service context: customer service, enquiries, ticketing, issue resolution',
   }
 
   const activeToolInstructions = data.tools
     .map(t => toolInstructions[t])
-    .join('\n')
+    .join('\\n')
 
   return `You are a helpful AI assistant named "${data.name}" created on Kaaj AI (কাজ AI).
 
