@@ -62,12 +62,23 @@ export async function generateAgentWithAI(data: AgentFormData): Promise<{
   color: string
 }> {
   const CATEGORY_ICONS: Record<AgentCategory, string> = {
-    business: '🏪', education: '📚', festival: '🌺',
-    finance: '💰', health: '🏥', agriculture: '🌾', other: '⚡',
+    business: '🏪',
+    education: '📚',
+    festival: '🌺',
+    finance: '💰',
+    health: '🏥',
+    agriculture: '🌾',
+    other: '⚡',
+    service: '🛠️',   // 👈 ADD THIS LINE
   }
   const CATEGORY_COLORS: Record<AgentCategory, string> = {
-    business: '#EEF2FF', education: '#D1FAE5', festival: '#FEF3C7',
-    finance: '#FEE2E2', health: '#E0F2FE', agriculture: '#DCFCE7', other: '#F3F4F6',
+    business: '#EEF2FF',
+    education: '#D1FAE5',
+    festival: '#FEF3C7',
+    finance: '#FEE2E2',
+    health: '#E0F2FE',
+    agriculture: '#DCFCE7',
+    other: '#F3F4F6',
   }
 
   return {
