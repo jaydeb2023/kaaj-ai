@@ -71,15 +71,16 @@ export async function generateAgentWithAI(data: AgentFormData): Promise<{
     other: '⚡',
     service: '🛠️',   // 👈 ADD THIS LINE
   }
-  const CATEGORY_COLORS: Record<AgentCategory, string> = {
-    business: '#EEF2FF',
-    education: '#D1FAE5',
-    festival: '#FEF3C7',
-    finance: '#FEE2E2',
-    health: '#E0F2FE',
-    agriculture: '#DCFCE7',
-    other: '#F3F4F6',
-  }
+ const CATEGORY_COLORS: Record<AgentCategory, string> = {
+  business: '#EEF2FF',
+  education: '#D1FAE5',
+  festival: '#FEF3C7',
+  finance: '#FEE2E2',
+  health: '#E0F2FE',
+  agriculture: '#DCFCE7',
+  other: '#F3F4F6',
+  service: '#F0F9FF',   // or any color you like
+}
 
   return {
     name_bn: data.name,
