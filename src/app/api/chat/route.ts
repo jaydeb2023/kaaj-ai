@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const GROQ_MODELS = [
   'llama-3.3-70b-versatile',
-  'llama-3.1-8b-instant',      // fallback 1 — faster
-  'gemma2-9b-it',              // fallback 2
+  'llama-3.1-8b-instant',
+  'gemma2-9b-it',
 ]
 
 async function callGroq(model: string, systemPrompt: string, messages: any[]) {
@@ -18,10 +18,7 @@ async function callGroq(model: string, systemPrompt: string, messages: any[]) {
       max_tokens: 1024,
       temperature: 0.7,
       messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
+        { role: 'system', content: systemPrompt },
         ...messages,
       ],
     }),
@@ -40,7 +37,7 @@ async function callGroq(model: string, systemPrompt: string, messages: any[]) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, systemPrompt, agentId } = await req.json()
+    const { messages, systemPrompt } = await req.json()
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ content: 'কোনো বার্তা পাওয়া যায়নি।' })
@@ -59,7 +56,7 @@ export async function POST(req: NextRequest) {
       : [{ role: 'user', content: messages[messages.length - 1]?.content || 'হ্যালো' }]
 
     const system = systemPrompt ||
-      `তুমি একজন সহায়ক বাংলা AI assistant। সবসময় বাংলায় উত্তর দাও। 
+      `তুমি একজন সহায়ক বাংলা AI assistant। সবসময় বাংলায় উত্তর দাও।
        সংক্ষিপ্ত, স্পষ্ট এবং বন্ধুত্বপূর্ণভাবে উত্তর দাও।
        ব্যবহারকারীর প্রশ্ন বুঝে সঠিক তথ্য দাও।`
 
@@ -70,11 +67,11 @@ export async function POST(req: NextRequest) {
     for (const model of GROQ_MODELS) {
       try {
         content = await callGroq(model, system, finalMessages)
-        break // success — stop trying
+        break
       } catch (err: any) {
         lastError = err.message
         console.error(`Model ${model} failed:`, err.message)
-        continue // try next model
+        continue
       }
     }
 
@@ -83,21 +80,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         content: 'দুঃখিত, এই মুহূর্তে উত্তর দিতে পারছি না। একটু পরে আবার চেষ্টা করুন।'
       })
-    }
-
-    // Save to Supabase if agentId exists (optional — won't break if fails)
-    if (agentId) {
-      try {
-        const { createClient } = await import('@/lib/supabaseServer')
-        const supabase = createClient()
-        await supabase.from('conversations').insert({
-          agent_id: agentId,
-          messages: finalMessages,
-          response: content,
-        })
-      } catch (dbErr) {
-        console.error('DB save failed (non-critical):', dbErr)
-      }
     }
 
     return NextResponse.json({ content })
