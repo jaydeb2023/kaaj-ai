@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { PREBUILT_AGENTS, CATEGORY_LABELS } from '@/types'
 import { ArrowRight, Zap, Shield, Globe, MessageCircle } from 'lucide-react'
-import { supabase } from '@/lib/supabaseClient'
 
 const FLIP_AGENTS = [
   {
@@ -91,11 +90,13 @@ function useRealStats() {
   const [stats, setStats] = useState({ agents: 0, users: 0, loaded: false })
   useEffect(() => {
     async function load() {
-      const [a, u] = await Promise.all([
-        supabase.from('agents').select('id', { count: 'exact', head: true }),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      ])
-      setStats({ agents: a.count || 0, users: u.count || 0, loaded: true })
+      try {
+        const res  = await fetch('/api/stats')
+        const data = await res.json()
+        setStats({ agents: data.agents || 0, users: data.users || 0, loaded: true })
+      } catch {
+        setStats({ agents: 0, users: 0, loaded: true })
+      }
     }
     load()
   }, [])
@@ -145,10 +146,18 @@ export default function HomePage() {
       <section className="bg-gray-900">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-800">
           {[
-            { n: stats.loaded ? `${stats.agents}` : '...', l: 'Agents তৈরি',        sub: 'live count' },
-            { n: stats.loaded ? `${stats.users}`  : '...', l: 'নিবন্ধিত user',      sub: 'live count' },
-            { n: '২৮+',                                     l: 'Agent template',     sub: 'বিভিন্ন ব্যবসার জন্য' },
-            { n: '১০০%',                                    l: 'চিরকাল বিনামূল্যে', sub: 'কোনো hidden charge নেই' },
+            {
+              n: stats.loaded && stats.agents > 0 ? `${stats.agents}+` : '২৮+',
+              l: stats.loaded && stats.agents > 0 ? 'Agents তৈরি' : 'Agent template',
+              sub: 'বিভিন্ন ব্যবসার জন্য'
+            },
+            {
+              n: stats.loaded && stats.users > 0 ? `${stats.users}+` : '🚀',
+              l: stats.loaded && stats.users > 0 ? 'নিবন্ধিত user' : 'নতুন launch',
+              sub: stats.loaded && stats.users > 0 ? 'এবং বাড়ছে' : 'প্রথম ১০০ জন বিনামূল্যে'
+            },
+            { n: '১০০%', l: 'বাংলায়',             sub: 'সম্পূর্ণ বাংলা ভাষায়'    },
+            { n: '১০০%', l: 'চিরকাল বিনামূল্যে',  sub: 'কোনো hidden charge নেই'  },
           ].map(s => (
             <div key={s.l} className="py-8 px-6 text-center">
               <div className="text-3xl font-extrabold text-white bengali">{s.n}</div>
