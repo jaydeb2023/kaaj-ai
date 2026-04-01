@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   alternates: { canonical: APP_URL },
   icons: { icon: '/favicon.ico', apple: '/apple-touch-icon.png' },
   verification: {
-    google: 'YOUR_GOOGLE_VERIFICATION_CODE',
+    google: '_olLK_pNN_2pUXFIxUYX3Pqf0OpEodMXC0LSyAbOwDw',
   },
   category: 'technology',
 }
