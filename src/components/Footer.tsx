@@ -52,10 +52,10 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { icon: <FacebookIcon />,  href: 'https://facebook.com',  label: 'Facebook'  },
+  { icon: <FacebookIcon />,  href: 'https://www.facebook.com/profile.php?id=61575599409070',  label: 'Facebook'  },
   { icon: <InstagramIcon />, href: 'https://instagram.com', label: 'Instagram' },
   { icon: <YouTubeIcon />,   href: 'https://youtube.com',   label: 'YouTube'   },
-  { icon: <LinkedInIcon />,  href: 'https://linkedin.com',  label: 'LinkedIn'  },
+  { icon: <LinkedInIcon />,  href: 'https://www.linkedin.com/company/113355101',  label: 'LinkedIn'  },
 ]
 
 export default function Footer() {
@@ -69,11 +69,11 @@ export default function Footer() {
             <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">E</div>
             <div>
               <div className="text-white text-sm font-semibold leading-none">Evynta CRM</div>
-              <div className="text-gray-400 text-xs mt-0.5">আরেকটি Debjay Sarader পণ্য — ব্যবসার জন্য সম্পূর্ণ CRM</div>
+          
             </div>
           </div>
           <a
-            href="https://evynta.com"
+            href="https://evynta.in"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs font-semibold px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors flex-shrink-0"
@@ -162,10 +162,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-xs bengali">
-            © {new Date().getFullYear()} Sahayak AI · সহায়ক AI — Made with ❤️ for West Bengal &amp; Bangladesh
-          </p>
-          <p className="text-gray-600 text-xs">
-            Built by <a href="https://evynta.com" target="_blank" rel="noopener noreferrer" className="text-violet-500 hover:text-violet-400 transition-colors">Debjay Sarader</a>
+            © {new Date().getFullYear()} Sahayak AI · সহায়ক AI
           </p>
         </div>
       </div>
