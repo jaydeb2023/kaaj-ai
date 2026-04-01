@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Disallow auth and private pages
+Disallow: /dashboard
+Disallow: /agents/new
+Disallow: /api/
+
+Sitemap: https://sahayakai.tech/sitemap.xml
