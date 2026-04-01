@@ -284,19 +284,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── FOOTER ───────────────────────────────────────────── */}
-      <footer className="bg-gray-900 py-10 px-4 text-center">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">স</div>
-          <span className="text-white font-bold">Sahayak AI · সহায়ক AI</span>
-        </div>
-        <p className="text-gray-500 text-sm bengali">বাংলার ব্যবসার বিশ্বস্ত সঙ্গী · Made with ❤️ for West Bengal &amp; Bangladesh</p>
-        <div className="flex justify-center gap-6 mt-4 text-gray-600 text-sm">
-          <Link href="/library"    className="hover:text-gray-400">Library</Link>
-          <Link href="/agents/new" className="hover:text-gray-400">Build Agent</Link>
-          <Link href="/dashboard"  className="hover:text-gray-400">Dashboard</Link>
-        </div>
-      </footer>
     </div>
   )
 }
