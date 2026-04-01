@@ -153,8 +153,8 @@ export default function HomePage() {
             },
             {
               n: stats.loaded && stats.users > 0 ? `${stats.users}+` : '🚀',
-              l: stats.loaded && stats.users > 0 ? 'নিবন্ধিত user' : 'নতুন launch',
-              sub: stats.loaded && stats.users > 0 ? 'এবং বাড়ছে' : 'প্রথম ১০০ জন বিনামূল্যে'
+              l: stats.loaded && stats.users > 0 ? 'নিবন্ধিত user' : '  Free for Everyone',
+              sub: stats.loaded && stats.users > 0 ? 'এবং বাড়ছে' : ' No signup fees, no hidden costs!'
             },
             { n: '১০০%', l: 'বাংলায়',             sub: 'সম্পূর্ণ বাংলা ভাষায়'    },
             { n: '১০০%', l: 'চিরকাল বিনামূল্যে',  sub: 'কোনো hidden charge নেই'  },
@@ -269,7 +269,7 @@ export default function HomePage() {
       <section className="bg-indigo-600 py-20 px-4 text-center">
         <div className="max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-indigo-500 text-indigo-100 text-xs font-semibold px-4 py-2 rounded-full mb-6 bengali">
-            🎯 প্রথম ১০০ user-এর জন্য সম্পূর্ণ বিনামূল্যে
+            🎯  সম্পূর্ণ বিনামূল্যে
           </div>
           <h2 className="text-4xl font-extrabold text-white mb-4 bengali">আজই শুরু করুন</h2>
           <p className="text-indigo-200 text-lg mb-8 bengali">কোনো credit card লাগবে না। মাত্র ২ মিনিটে আপনার প্রথম AI এজেন্ট তৈরি করুন।</p>
