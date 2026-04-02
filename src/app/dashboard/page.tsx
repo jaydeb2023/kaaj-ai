@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Plus, MessageSquare, Bot, ArrowLeft } from 'lucide-react'
 import AgentRunner from '@/components/AgentRunner'
 import ReportDashboard from '@/components/ReportDashboard'
+import CRMDashboard from '@/components/CRMDashboard'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -14,7 +15,7 @@ export default function DashboardPage() {
   const [loading, setLoading]     = useState(true)
   const [agents, setAgents]       = useState<any[]>([])
   const [selectedAgent, setSelectedAgent] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState<'chat' | 'reports'>('chat')
+  const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'crm'>('chat')
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -55,23 +56,18 @@ export default function DashboardPage() {
           <div className="flex gap-2 mb-5">
             <button
               onClick={() => setActiveTab('chat')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                activeTab === 'chat'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${activeTab === 'chat' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
               <MessageSquare size={15} /> Chat করুন
             </button>
             <button
               onClick={() => setActiveTab('reports')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                activeTab === 'reports'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${activeTab === 'reports' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
               📊 রিপোর্ট ও হিসাব
+            </button>
+            <button
+              onClick={() => setActiveTab('crm')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${activeTab === 'crm' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+              👥 Customer CRM
             </button>
           </div>
 
@@ -103,8 +99,15 @@ export default function DashboardPage() {
                 <AgentRunner agent={selectedAgent} agentId={selectedAgent.id} />
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'reports' ? (
             <ReportDashboard userId={user.id} agentId={selectedAgent.id} agentName={selectedAgent.name_bn || selectedAgent.name} />
+          ) : (
+            <CRMDashboard
+              userId={user.id}
+              agentId={selectedAgent.id}
+              businessType={selectedAgent.category === 'health' ? 'pharmacy' : selectedAgent.category === 'business' ? 'dokan' : selectedAgent.category === 'education' ? 'coaching' : 'dokan'}
+              agentName={selectedAgent.name_bn || selectedAgent.name}
+            />
           )}
         </div>
       </div>
