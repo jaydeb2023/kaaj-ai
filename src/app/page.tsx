@@ -116,7 +116,7 @@ export default function HomePage() {
           {/* Honest launch badge */}
           <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-4 py-2 rounded-full border border-emerald-200 mb-8">
             <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="bengali">🚀 নতুন launch — প্রথম ১০০ user সম্পূর্ণ বিনামূল্যে · West Bengal &amp; Bangladesh</span>
+            <span className="bengali">🚀 নতুন launch  সম্পূর্ণ বিনামূল্যে </span>
           </div>
 
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-4">
