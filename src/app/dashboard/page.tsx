@@ -137,12 +137,18 @@ export default function DashboardPage() {
   const [totalRevenue, setTotalRevenue]   = useState(0)
 
   const refreshStats = useCallback(async (uid: string) => {
-    const [{ count }, { data: purch }] = await Promise.all([
-      supabase.from('crm_customers').select('id', { count: 'exact', head: true }).eq('user_id', uid),
-      supabase.from('crm_purchases').select('total_amount').eq('user_id', uid),
-    ])
-    setTotalCustomers(count || 0)
-    setTotalRevenue((purch || []).reduce((s: number, p: any) => s + Number(p.total_amount || 0), 0))
+    try {
+      const [custRes, purchRes] = await Promise.all([
+        supabase.from('crm_customers').select('*', { count: 'exact', head: true }).eq('user_id', uid),
+        supabase.from('crm_purchases').select('total_amount').eq('user_id', uid),
+      ])
+      setTotalCustomers(custRes.count ?? 0)
+      const rev = (purchRes.data || []).reduce((s: number, p: any) => s + Number(p.total_amount || 0), 0)
+      setTotalRevenue(rev)
+    } catch {
+      setTotalCustomers(0)
+      setTotalRevenue(0)
+    }
   }, [])
 
   useEffect(() => {
@@ -399,11 +405,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <FloatingMic
-        lang={micLang}
-        onLangToggle={() => setMicLang(l => l === 'bn-IN' ? 'en-IN' : 'bn-IN')}
-        onTranscript={(text) => toast(`বললেন: "${text}" — কোনো এজেন্ট বেছে নিন`, { icon: '🎤' })}
-      />
     </div>
   )
 }
