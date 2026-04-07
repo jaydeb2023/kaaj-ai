@@ -394,7 +394,8 @@ function GSTHelperUI() {
       </div>
       <p>তারিখ: ${new Date().toLocaleDateString('bn-IN')} | গ্রাহক: ${customerName || 'N/A'}</p>
       <table><thead><tr><th>পণ্য/সেবা</th><th>পরিমাণ</th><th>দাম</th><th>GST%</th><th>GST টাকা</th><th>মোট</th></tr></thead>
-      <tbody>${items.map(i => `<tr><td>${i.desc}</td><td>${i.qty}</td><td>₹${i.rate}</td><td>${i.gst}%</td><td>₹${(+i.qty*+i.rate*+i.gst/100).toFixed(2)}</td><td>₹${(+i.qty*+i.rate*(1++i.gst/100)).toFixed(2)}</td></tr>`).join('')}</tbody>
+      <tbody>${items.map(i => `<tr><td>${i.desc}</td><td>${i.qty}</td><td>₹${i.rate}</td><td>${i.gst}%</td><td>₹${(+i.qty * +i.rate * (+i.gst / 100)).toFixed(2)}</td>
+<td>₹${(+i.qty * +i.rate * (1 + +i.gst / 100)).toFixed(2)}</td></tr>`).join('')}</tbody>
       <tfoot><tr class="total-row"><td colspan="4">মোট</td><td>₹${gstAmt.toFixed(2)}</td><td>₹${grand.toFixed(2)}</td></tr></tfoot>
       </table><br/><p>ধন্যবাদ আপনার ব্যবসার জন্য!</p></body></html>`)
     w.print()
