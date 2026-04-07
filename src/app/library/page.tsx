@@ -8,17 +8,16 @@ import { supabase } from '@/lib/supabaseClient'
 
 const ALL_CATEGORIES: AgentCategory[] = ['business', 'education', 'festival', 'finance', 'health', 'agriculture', 'service']
 
-// ── Fetch real conversation counts from Supabase ──────────────
-// We match by agent name since prebuilt agents don't have fixed UUIDs.
-// For user-created agents the conversations table has agent_id.
-// For prebuilt agents we count public agents by name match.
+function agentSlug(name: string) {
+  return name.toLowerCase().replace(/[&]/g, 'and').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
 function useConversationCounts() {
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     async function load() {
-      // Fetch all public agents with their names + conversation count via join
       const { data: agents } = await supabase
         .from('agents')
         .select('id, name, use_count')
@@ -26,12 +25,10 @@ function useConversationCounts() {
 
       if (!agents) { setLoaded(true); return }
 
-      // Also fetch conversation counts per agent_id
       const { data: convs } = await supabase
         .from('conversations')
         .select('agent_id')
 
-      // Build a map: agent name → total conversations
       const convMap: Record<string, number> = {}
       if (convs) {
         const agentIdToName: Record<string, string> = {}
@@ -42,7 +39,6 @@ function useConversationCounts() {
         })
       }
 
-      // Merge: use conversation count if available, else use_count from DB, else 0
       const finalMap: Record<string, number> = {}
       agents.forEach(a => {
         finalMap[a.name] = convMap[a.name] ?? a.use_count ?? 0
@@ -57,7 +53,6 @@ function useConversationCounts() {
   return { counts, loaded }
 }
 
-// ── Count badge component ─────────────────────────────────────
 function CountBadge({ name, counts, loaded }: { name: string; counts: Record<string, number>; loaded: boolean }) {
   if (!loaded) {
     return <span className="text-xs text-gray-300 flex items-center gap-1"><MessageSquare size={11} />...</span>
@@ -79,9 +74,9 @@ function CountBadge({ name, counts, loaded }: { name: string; counts: Record<str
 }
 
 export default function LibraryPage() {
-  const [search, setSearch]               = useState('')
+  const [search, setSearch]                 = useState('')
   const [activeCategory, setActiveCategory] = useState<AgentCategory | 'all'>('all')
-  const { counts, loaded }                = useConversationCounts()
+  const { counts, loaded }                  = useConversationCounts()
 
   const filtered = PREBUILT_AGENTS.filter(a => {
     const matchCat    = activeCategory === 'all' || a.category === activeCategory
@@ -96,7 +91,7 @@ export default function LibraryPage() {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── Header ───────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────── */}
       <div className="bg-white border-b border-gray-200 py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
@@ -120,7 +115,7 @@ export default function LibraryPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* ── Category filters ──────────────────────────────── */}
+        {/* ── Category filters ───────────────────────────────────── */}
         <div className="flex flex-wrap gap-2 mb-8">
           <button
             onClick={() => setActiveCategory('all')}
@@ -151,12 +146,11 @@ export default function LibraryPage() {
           })}
         </div>
 
-        {/* ── Results count ─────────────────────────────────── */}
         <p className="text-xs text-gray-400 mb-5 bengali">
           {filtered.length}টি এজেন্ট দেখানো হচ্ছে
         </p>
 
-        {/* ── Agent grid ────────────────────────────────────── */}
+        {/* ── Agent grid ─────────────────────────────────────────── */}
         {filtered.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <div className="text-4xl mb-3">🔍</div>
@@ -169,7 +163,7 @@ export default function LibraryPage() {
               return (
                 <Link
                   key={i}
-                  href="/agents/new"
+                  href={`/library/${agentSlug(agent.name)}`}
                   className="group bg-white rounded-2xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-md transition-all"
                   style={{ borderTop: `3px solid ${agent.color}` }}
                 >
@@ -191,7 +185,6 @@ export default function LibraryPage() {
                   </p>
 
                   <div className="flex items-center justify-between">
-                    {/* Real conversation count */}
                     <CountBadge name={agent.name} counts={counts} loaded={loaded} />
                     <span className="text-indigo-600 text-xs font-semibold flex items-center gap-1 group-hover:gap-2 transition-all bengali">
                       চেষ্টা করুন <ArrowRight size={11} />
@@ -203,7 +196,7 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* ── Build your own CTA ────────────────────────────── */}
+        {/* ── Build your own CTA ─────────────────────────────────── */}
         <div className="mt-12 bg-indigo-600 rounded-2xl p-8 text-center">
           <h3 className="text-2xl font-extrabold text-white mb-2 bengali">নিজের এজেন্ট তৈরি করুন</h3>
           <p className="text-indigo-200 bengali mb-5">আপনার নিজস্ব চাহিদা অনুযায়ী কাস্টম এজেন্ট বানান — বাংলায়</p>
