@@ -12,6 +12,9 @@ import {
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
+import PharmacyAssistantUI from '@/components/PharmacyAssistantUI'
+import DoctorChamberUI from '@/components/DoctorChamberUI'
+import PathologyLabUI from '@/components/PathologyLabUI'
 
 // ── slug helper ──────────────────────────────────────────────────
 function agentSlug(name: string) {
@@ -252,7 +255,13 @@ function DokanManagerUI() {
 }
 
 // ── 2. PHARMACY ASSISTANT ────────────────────────────────────────
+// PharmacyUI, DoctorChamberUI, PathologyLabUI are now in separate component files
+// kept as alias for legacy compatibility
 function PharmacyUI() {
+  return <PharmacyAssistantUI />
+}
+
+function _OldPharmacyUI_REMOVED() {
   const [medicines, setMedicines] = useState([
     { name: 'Paracetamol 500mg', stock: 84, unit: 'strip', expiry: '2026-08', minStock: 50, price: 12 },
     { name: 'Amoxicillin 250mg', stock: 23, unit: 'strip', expiry: '2025-12', minStock: 30, price: 45 },
@@ -364,6 +373,7 @@ function PharmacyUI() {
       </div>
     </div>
   )
+  return null // unused stub
 }
 
 // ── 3. GST & TAX HELPER ──────────────────────────────────────────
@@ -746,7 +756,9 @@ export default function AgentDetailPage() {
   const renderPanel = () => {
     const s = agentSlug(agent.name)
     if (s === 'dokan-manager') return <DokanManagerUI />
-    if (s === 'pharmacy-assistant') return <PharmacyUI />
+    if (s === 'pharmacy-assistant') return <PharmacyAssistantUI />
+    if (s === 'doctor-chamber-helper') return <DoctorChamberUI />
+    if (s === 'pathology-lab-tracker') return <PathologyLabUI />
     if (s === 'gst-tax-helper') return <GSTHelperUI />
     if (s === 'coaching-centre-manager') return <CoachingManagerUI />
     if (s === 'budget-sahayak') return <BudgetUI />
