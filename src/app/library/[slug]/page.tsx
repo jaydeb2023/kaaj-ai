@@ -15,6 +15,7 @@ import toast from 'react-hot-toast'
 import PharmacyAssistantUI from '@/components/PharmacyAssistantUI'
 import DoctorChamberUI from '@/components/DoctorChamberUI'
 import PathologyLabUI from '@/components/PathologyLabUI'
+import { useRequireAuth } from '@/lib/useRequireAuth'
 
 // ── slug helper ──────────────────────────────────────────────────
 function agentSlug(name: string) {
@@ -737,8 +738,21 @@ function GenericAgentUI({ agent }: { agent: any }) {
 export default function AgentDetailPage() {
   const params = useParams()
   const slug = params?.slug as string
+  const { user, loading: authLoading } = useRequireAuth()
 
   const agent = PREBUILT_AGENTS.find(a => agentSlug(a.name) === slug)
+
+  // Auth loading state
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-gray-400">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <span className="bengali text-sm">লোড হচ্ছে...</span>
+        </div>
+      </div>
+    )
+  }
 
   if (!agent) {
     return (
