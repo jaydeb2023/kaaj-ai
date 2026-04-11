@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react'
@@ -20,7 +20,10 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const router  = useRouter()
+  const router        = useRouter()
+  const searchParams  = useSearchParams()
+  const nextPath      = searchParams.get('next') || '/dashboard'
+
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
@@ -33,7 +36,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}${nextPath}`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -60,7 +63,7 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         toast.success('স্বাগতম! সহায়ক AI-তে আপনাকে স্বাগত।')
-        router.push('/dashboard')
+        router.push(nextPath)
       }
     } catch (err: any) {
       // Show Bengali-friendly error messages
