@@ -1,8 +1,25 @@
+'use client'
+
 import AgentBuilderForm from '@/components/AgentBuilderForm'
 import { PREBUILT_AGENTS, CATEGORY_LABELS } from '@/types'
 import Link from 'next/link'
+import { useRequireAuth } from '@/lib/useRequireAuth'
 
 export default function NewAgentPage() {
+  const { user, loading: authLoading } = useRequireAuth()
+
+  // Auth loading state
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-gray-400">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <span className="bengali text-sm">লোড হচ্ছে...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-6xl mx-auto">
