@@ -4,14 +4,14 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 
 const navLinks = [
-  { href: '/',          label: 'Home',        labelBn: 'হোম'           },
-  { href: '/library',   label: 'Library',     labelBn: 'লাইব্রেরি'     },
-  { href: '/agents/new',label: 'Build Agent', labelBn: 'এজেন্ট তৈরি'  },
-  { href: '/dashboard', label: 'Dashboard',   labelBn: 'ড্যাশবোর্ড'   },
+  { href: '/',           label: 'Home',        labelBn: 'হোম',          protected: false },
+  { href: '/library',    label: 'Library',     labelBn: 'লাইব্রেরি',    protected: true  },
+  { href: '/agents/new', label: 'Build Agent', labelBn: 'এজেন্ট তৈরি', protected: true  },
+  { href: '/dashboard',  label: 'Dashboard',   labelBn: 'ড্যাশবোর্ড',  protected: true  },
 ]
 
 export default function Navbar() {
@@ -19,11 +19,16 @@ export default function Navbar() {
   const router   = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser]         = useState<any>(null)
+  const [authLoaded, setAuthLoaded] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+      setAuthLoaded(true)
+    })
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null)
+      setAuthLoaded(true)
     })
     return () => listener.subscription.unsubscribe()
   }, [])
@@ -32,6 +37,15 @@ export default function Navbar() {
     await supabase.auth.signOut()
     setUser(null)
     router.push('/')
+  }
+
+  // For protected links: if not logged in, go to /login?next=<href>
+  const handleProtectedNav = (e: React.MouseEvent, href: string, isProtected: boolean) => {
+    if (isProtected && authLoaded && !user) {
+      e.preventDefault()
+      router.push(`/login?next=${encodeURIComponent(href)}`)
+    }
+    setMenuOpen(false)
   }
 
   return (
@@ -49,17 +63,26 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
-          {navLinks.map(link => (
-            <Link key={link.href} href={link.href}
-              className={cn(
-                'px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all',
-                pathname === link.href
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-              )}>
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map(link => {
+            const isActive   = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
+            const isLocked   = link.protected && authLoaded && !user
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={e => handleProtectedNav(e, link.href, link.protected)}
+                className={cn(
+                  'px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all flex items-center gap-1.5',
+                  isActive
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                )}
+              >
+                {link.label}
+                {isLocked && <Lock size={10} className="text-gray-300" />}
+              </Link>
+            )
+          })}
         </div>
 
         {/* Auth buttons */}
@@ -72,19 +95,25 @@ export default function Navbar() {
                 </div>
                 <span className="text-sm text-gray-600 max-w-[120px] truncate">{user.email?.split('@')[0]}</span>
               </div>
-              <button onClick={handleLogout}
-                className="px-4 py-2 text-[13px] font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-[13px] font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/login"
-                className="px-4 py-2 text-[13px] font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link
+                href="/login"
+                className="px-4 py-2 text-[13px] font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 Sign in
               </Link>
-              <Link href="/agents/new"
-                className="px-4 py-2 text-[13px] font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+              <Link
+                href="/login"
+                className="px-4 py-2 text-[13px] font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors bengali"
+              >
                 শুরু করুন বিনামূল্যে
               </Link>
             </>
@@ -99,30 +128,55 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="absolute top-[60px] left-0 right-0 bg-white border-b border-gray-200 p-4 md:hidden z-50 flex flex-col gap-2">
-          {navLinks.map(link => (
-            <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)}
-              className={cn(
-                'px-4 py-3 rounded-lg text-[14px] font-medium',
-                pathname === link.href ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'
-              )}>
-              {link.label} <span className="text-gray-400 ml-1 bengali">· {link.labelBn}</span>
-            </Link>
-          ))}
+        <div className="absolute top-[60px] left-0 right-0 bg-white border-b border-gray-200 p-4 md:hidden z-50 flex flex-col gap-2 shadow-lg">
+          {navLinks.map(link => {
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
+            const isLocked = link.protected && authLoaded && !user
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={e => handleProtectedNav(e, link.href, link.protected)}
+                className={cn(
+                  'px-4 py-3 rounded-lg text-[14px] font-medium flex items-center justify-between',
+                  isActive ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'
+                )}
+              >
+                <span>
+                  {link.label}
+                  <span className="text-gray-400 ml-1 bengali text-xs">· {link.labelBn}</span>
+                </span>
+                {isLocked && (
+                  <span className="flex items-center gap-1 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                    <Lock size={9} /> Login
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+
           <div className="border-t border-gray-100 pt-3 mt-1 flex flex-col gap-2">
             {user ? (
-              <button onClick={handleLogout}
-                className="px-4 py-3 text-center text-[14px] font-medium text-red-600 border border-red-200 rounded-lg">
+              <button
+                onClick={handleLogout}
+                className="px-4 py-3 text-center text-[14px] font-medium text-red-600 border border-red-200 rounded-lg"
+              >
                 Logout ({user.email?.split('@')[0]})
               </button>
             ) : (
               <>
-                <Link href="/login" onClick={() => setMenuOpen(false)}
-                  className="px-4 py-3 text-center text-[14px] font-medium border border-gray-200 rounded-lg">
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 text-center text-[14px] font-medium border border-gray-200 rounded-lg"
+                >
                   Sign in
                 </Link>
-                <Link href="/agents/new" onClick={() => setMenuOpen(false)}
-                  className="px-4 py-3 text-center text-[14px] font-semibold text-white bg-indigo-600 rounded-lg">
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-3 text-center text-[14px] font-semibold text-white bg-indigo-600 rounded-lg bengali"
+                >
                   শুরু করুন বিনামূল্যে
                 </Link>
               </>
