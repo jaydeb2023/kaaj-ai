@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PREBUILT_AGENTS, CATEGORY_LABELS, AgentCategory } from '@/types'
-import { Search, MessageSquare, ArrowRight } from 'lucide-react'
+import { Search, MessageSquare, ArrowRight, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
+import { useRequireAuth } from '@/lib/useRequireAuth'
 
 const ALL_CATEGORIES: AgentCategory[] = ['business', 'education', 'festival', 'finance', 'health', 'agriculture', 'service']
 
@@ -74,9 +75,22 @@ function CountBadge({ name, counts, loaded }: { name: string; counts: Record<str
 }
 
 export default function LibraryPage() {
+  const { user, loading: authLoading } = useRequireAuth()
   const [search, setSearch]                 = useState('')
   const [activeCategory, setActiveCategory] = useState<AgentCategory | 'all'>('all')
   const { counts, loaded }                  = useConversationCounts()
+
+  // Show loading spinner while checking auth
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-gray-400">
+          <Loader2 size={32} className="animate-spin text-indigo-500" />
+          <span className="bengali text-sm">লোড হচ্ছে...</span>
+        </div>
+      </div>
+    )
+  }
 
   const filtered = PREBUILT_AGENTS.filter(a => {
     const matchCat    = activeCategory === 'all' || a.category === activeCategory
