@@ -259,7 +259,7 @@ function DokanManagerUI() {
 // PharmacyUI, DoctorChamberUI, PathologyLabUI are now in separate component files
 // kept as alias for legacy compatibility
 function PharmacyUI() {
-  return <PharmacyAssistantUI />
+  return <PharmacyAssistantUI userId={user?.id} />
 }
 
 function _OldPharmacyUI_REMOVED() {
@@ -770,7 +770,7 @@ export default function AgentDetailPage() {
   const renderPanel = () => {
     const s = agentSlug(agent.name)
     if (s === 'dokan-manager') return <DokanManagerUI />
-    if (s === 'pharmacy-assistant') return <PharmacyAssistantUI />
+    if (s === "pharmacy-assistant") return <PharmacyAssistantUI userId={user?.id} />
     if (s === 'doctor-chamber-helper') return <DoctorChamberUI />
     if (s === 'pathology-lab-tracker') return <PathologyLabUI />
     if (s === 'gst-tax-helper') return <GSTHelperUI />
