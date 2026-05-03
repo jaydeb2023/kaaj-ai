@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabase } from "@/lib/supabaseClient"
 import {
   AlertTriangle, Package, Plus, Printer, Trash2, Search,
   TrendingUp, DollarSign, Clock, FileText, Phone, User,
@@ -148,9 +148,9 @@ const QUICK_QUESTIONS = [
 ]
 
 // ══════════════════════════════════════════════════════════════════
-export default function PharmacyAssistantUI() {
-  const supabase = createClientComponentClient()
-  const [userId, setUserId] = useState<string | null>(null)
+export default function PharmacyAssistantUI({ userId: propUserId }: { userId?: string }) {
+  // using shared supabase singleton from lib
+  const [userId, setUserId] = useState<string | null>(propUserId || null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('stock')
 
@@ -210,18 +210,19 @@ export default function PharmacyAssistantUI() {
   // ── Auth & initial load ────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
-      setUserId(user.id)
+      // If userId passed as prop (from parent auth), use it directly
+      const uid = propUserId || (await supabase.auth.getUser()).data.user?.id
+      if (!uid) { setLoading(false); return }
+      setUserId(uid)
       await Promise.all([
-        loadMedicines(user.id),
-        loadPatients(user.id),
-        loadRecentPurchases(user.id),
+        loadMedicines(uid),
+        loadPatients(uid),
+        loadRecentPurchases(uid),
       ])
       setLoading(false)
     }
     init()
-  }, [])
+  }, [propUserId])
 
   // ── Load functions ─────────────────────────────────────────────
   const loadMedicines = async (uid: string) => {
