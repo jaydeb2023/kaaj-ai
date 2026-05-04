@@ -822,18 +822,6 @@ export default function AgentDetailPage() {
             <AgentChat agent={agent} />
           </div>
         </div>
-
-        {/* Subscription CTA */}
-        <div className="mt-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-extrabold bengali mb-1">🚀 Pro Plan — সব features unlock করুন</h3>
-            <p className="text-indigo-200 bengali text-sm">Excel export · PDF billing · SMS reminder · অসীমিত ব্যবহার · priority support</p>
-          </div>
-          <div className="flex-shrink-0 text-center">
-            <div className="text-3xl font-extrabold">₹299<span className="text-lg font-normal">/মাস</span></div>
-            <button className="mt-2 bg-white text-indigo-700 font-bold px-6 py-2 rounded-xl bengali hover:bg-indigo-50 transition-colors text-sm">Subscribe করুন</button>
-          </div>
-        </div>
       </div>
     </div>
   )
