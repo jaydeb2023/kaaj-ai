@@ -257,11 +257,6 @@ function DokanManagerUI() {
 
 // ── 2. PHARMACY ASSISTANT ────────────────────────────────────────
 // PharmacyUI, DoctorChamberUI, PathologyLabUI are now in separate component files
-// kept as alias for legacy compatibility
-function PharmacyUI() {
-  return <PharmacyAssistantUI userId={user?.id} />
-}
-
 function _OldPharmacyUI_REMOVED() {
   const [medicines, setMedicines] = useState([
     { name: 'Paracetamol 500mg', stock: 84, unit: 'strip', expiry: '2026-08', minStock: 50, price: 12 },
