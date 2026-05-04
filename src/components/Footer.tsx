@@ -61,17 +61,6 @@ const socialLinks = [
 export default function Footer() {
   return (
     <footer className="bg-gray-900">
-
-      {/* ── Evynta banner ──────────────────────────────────── */}
-      <div className="border-b border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">E</div>
-            <div>
-              <div className="text-white text-sm font-semibold leading-none">Evynta CRM</div>
-          
-            </div>
-          </div>
           <a
             href="https://evynta.in"
             target="_blank"
