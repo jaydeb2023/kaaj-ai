@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from "@/lib/supabaseClient"
 import {
   AlertTriangle, Package, Plus, Printer, Trash2, Search,
@@ -145,6 +145,170 @@ export default function PharmacyAssistantUI({ userId: propUserId }: { userId?: s
   const [payingPurchase, setPayingPurchase] = useState<Purchase | null>(null)
   const [payAmount, setPayAmount] = useState(0)
   const [savingPayment, setSavingPayment] = useState(false)
+
+  // ── Auth & initial load ────────────────────────────────────────
+  useEffect(() => {
+    const init = async () => {
+      const uid = propUserId || (await supabase.auth.getUser()).data.user?.id
+      if (!uid) { setLoading(false); return }
+      setUserId(uid)
+      await Promise.all([loadMedicines(uid), loadPatients(uid), loadRecentPurchases(uid)])
+      setLoading(false)
+    }
+    init()
+  }, [propUserId])
+
+  const loadMedicines = async (uid: string) => {
+    const { data } = await supabase.from('pharmacy_medicines').select('*').eq('user_id', uid).order('name')
+    if (data) setMedicines(data)
+  }
+
+  const loadPatients = async (uid: string) => {
+    const { data: customers } = await supabase.from('crm_customers').select('*').eq('user_id', uid).eq('business_type', 'pharmacy').order('name')
+    if (!customers) return
+    const { data: purchasesData } = await supabase.from('crm_purchases').select('customer_id, due_amount, paid_amount, total_amount, purchase_date, item_name, unit_price, quantity, payment_status, unit, notes, id').eq('user_id', uid).neq('payment_status', 'paid')
+    const dueMap: Record<string, number> = {}
+    if (purchasesData) purchasesData.forEach((p: any) => { dueMap[p.customer_id] = (dueMap[p.customer_id] || 0) + Number(p.due_amount || 0) })
+    const patientsWithDue = customers.map((c: any) => ({ id: c.id, user_id: c.user_id, name: c.name, age: c.age || 0, gender: c.gender || 'অজানা', phone: c.phone || '', address: c.address || '', doctor_name: c.doctor_name || '', blood_group: c.blood_group || 'জানা নেই', notes: c.notes || '', total_due: dueMap[c.id] || 0 }))
+    setPatients(patientsWithDue)
+    buildHalkhata(patientsWithDue, purchasesData || [])
+  }
+
+  const loadRecentPurchases = async (uid: string) => {
+    const { data } = await supabase.from('crm_purchases').select('*, crm_customers(name, phone)').eq('user_id', uid).order('purchase_date', { ascending: false }).limit(50)
+    if (data) { const mapped = data.map((p: any) => ({ ...p, customer_name: p.crm_customers?.name || '' })); setRecentSales(mapped); setPurchases(mapped) }
+  }
+
+  const buildHalkhata = (pts: Patient[], allPurchases: any[]) => {
+    const entries: HalkhataEntry[] = []
+    pts.forEach(p => {
+      const pp = allPurchases.filter((pu: any) => pu.customer_id === p.id && Number(pu.due_amount) > 0)
+      if (pp.length === 0) return
+      const totalDueAmt = pp.reduce((s: number, pu: any) => s + Number(pu.due_amount || 0), 0)
+      const lastPurchase = pp.sort((a: any, b: any) => b.purchase_date.localeCompare(a.purchase_date))[0]?.purchase_date || ''
+      entries.push({ patient: p, purchases: pp, total_due: totalDueAmt, last_purchase: lastPurchase })
+    })
+    setHalkhataData(entries.sort((a, b) => b.total_due - a.total_due))
+  }
+
+  const loadPatientPurchases = async (patientId: string) => {
+    const { data } = await supabase.from('crm_purchases').select('*').eq('customer_id', patientId).order('purchase_date', { ascending: false })
+    if (data) setPatientPurchases(data)
+  }
+
+  // ── Medicine CRUD ──────────────────────────────────────────────
+  const saveMedicine = async () => {
+    if (!newMed.name) { toast.error('ওষুধের নাম দিন'); return }
+    if (!userId) { toast.error('লগইন করুন'); return }
+    setSavingMed(true)
+    try {
+      const payload = { user_id: userId, name: newMed.name, generic: newMed.generic || '', category: newMed.category || 'Other', stock: Number(newMed.stock || 0), unit: newMed.unit || 'strip', expiry: newMed.expiry || monthYear(), mrp: Number(newMed.mrp || 0), cost_price: Number(newMed.cost_price || 0), min_stock: Number(newMed.min_stock || 20), supplier: newMed.supplier || '', rack: newMed.rack || '', prescription_required: !!newMed.prescription_required }
+      if (editMed) { const { error } = await supabase.from('pharmacy_medicines').update(payload).eq('id', editMed.id); if (error) throw error; toast.success('আপডেট হয়েছে!') }
+      else { const { error } = await supabase.from('pharmacy_medicines').insert(payload); if (error) throw error; toast.success('যোগ হয়েছে!') }
+      setNewMed({ unit: 'strip', category: 'Analgesic', prescription_required: false, stock: 0, min_stock: 20 }); setShowAddMed(false); setEditMed(null)
+      await loadMedicines(userId)
+    } catch (e: any) { toast.error(e.message || 'সমস্যা হয়েছে') } finally { setSavingMed(false) }
+  }
+
+  const startEditMed = (m: Medicine) => { setEditMed(m); setNewMed({ ...m }); setShowAddMed(true) }
+
+  const deleteMed = async (id: string) => {
+    if (!confirm('মুছে ফেলবেন?')) return
+    await supabase.from('pharmacy_medicines').delete().eq('id', id)
+    setMedicines(medicines.filter(m => m.id !== id)); toast.success('মুছে ফেলা হয়েছে')
+  }
+
+  const updateStockDirect = async (med: Medicine, newStock: number) => {
+    if (!userId) return
+    await supabase.from('pharmacy_medicines').update({ stock: newStock }).eq('id', med.id)
+    setMedicines(medicines.map(m => m.id === med.id ? { ...m, stock: newStock } : m))
+  }
+
+  // ── Patient CRUD ───────────────────────────────────────────────
+  const savePatient = async () => {
+    if (!newPatient.name) { toast.error('নাম দিন'); return }
+    if (!userId) { toast.error('লগইন করুন'); return }
+    setSavingPatient(true)
+    try {
+      const payload = { user_id: userId, business_type: 'pharmacy', name: newPatient.name, age: Number(newPatient.age || 0), gender: newPatient.gender || 'অজানা', phone: newPatient.phone || '', address: newPatient.address || '', doctor_name: newPatient.doctor_name || '', blood_group: newPatient.blood_group || 'জানা নেই', notes: newPatient.notes || '' }
+      const { error } = await supabase.from('crm_customers').insert(payload)
+      if (error) throw error
+      toast.success('রোগী রেজিস্ট্রেশন হয়েছে!'); setNewPatient({ gender: 'পুরুষ', blood_group: 'জানা নেই' }); setShowAddPatient(false)
+      await loadPatients(userId)
+    } catch (e: any) { toast.error(e.message || 'সমস্যা হয়েছে') } finally { setSavingPatient(false) }
+  }
+
+  const deletePatient = async (id: string) => {
+    if (!confirm('মুছে ফেলবেন?')) return
+    await supabase.from('crm_customers').delete().eq('id', id)
+    setPatients(patients.filter(p => p.id !== id)); toast.success('মুছে ফেলা হয়েছে')
+  }
+
+  // ── Sale save ─────────────────────────────────────────────────
+  const saveSale = async () => {
+    if (!salePatient) { toast.error('রোগী বেছে নিন'); return }
+    if (saleItems.every(i => !i.name)) { toast.error('ওষুধ যোগ করুন'); return }
+    if (!userId) { toast.error('লগইন করুন'); return }
+    setSavingSale(true)
+    try {
+      const validItems = saleItems.filter(i => i.name && i.qty > 0)
+      const rows = validItems.map(i => {
+        const total = i.qty * i.mrp * (1 - i.discount / 100)
+        const due = Math.max(0, total - salePaid / validItems.length)
+        return { user_id: userId, customer_id: salePatient.id, purchase_date: today(), item_name: i.name, item_category: 'medicine', quantity: i.qty, unit: medicines.find(m => m.name === i.name)?.unit || 'strip', unit_price: i.mrp * (1 - i.discount / 100), total_amount: total, paid_amount: salePaid / validItems.length, due_amount: due, payment_status: due <= 0 ? 'paid' : salePaid > 0 ? 'partial' : 'pending', notes: saleDoctor ? `ডাক্তার: ${saleDoctor}` : '', source: 'manual' }
+      })
+      const { error } = await supabase.from('crm_purchases').insert(rows)
+      if (error) throw error
+      for (const i of validItems) { const med = medicines.find(m => m.name === i.name); if (med) await supabase.from('pharmacy_medicines').update({ stock: Math.max(0, med.stock - i.qty) }).eq('id', med.id) }
+      toast.success('বিল সেভ হয়েছে!')
+      setSalePatient(null); setSalePatientSearch(''); setSaleItems([{ name: '', qty: 1, mrp: 0, discount: 0 }]); setSalePaid(0); setSaleDoctor(''); setShowNewSale(false)
+      await Promise.all([loadMedicines(userId), loadPatients(userId), loadRecentPurchases(userId)])
+      if (confirm('বিল প্রিন্ট করবেন?')) printSaleBill(salePatient, validItems, saleGross, salePaid, saleDoctor)
+    } catch (e: any) { toast.error(e.message || 'সমস্যা হয়েছে') } finally { setSavingSale(false) }
+  }
+
+  // ── Payment update ─────────────────────────────────────────────
+  const savePayment = async () => {
+    if (!payingPurchase || !userId) return
+    setSavingPayment(true)
+    try {
+      const newPaid = Number(payingPurchase.paid_amount) + Number(payAmount)
+      const newDue = Math.max(0, Number(payingPurchase.total_amount) - newPaid)
+      await supabase.from('crm_purchases').update({ paid_amount: newPaid, due_amount: newDue, payment_status: newDue <= 0 ? 'paid' : 'partial' }).eq('id', payingPurchase.id)
+      toast.success(`₹${payAmount} পেমেন্ট রেকর্ড হয়েছে!`)
+      setPayingPurchase(null); setPayAmount(0)
+      await Promise.all([loadPatients(userId), loadRecentPurchases(userId)])
+      if (selectedPatient) await loadPatientPurchases(selectedPatient.id)
+    } catch (e: any) { toast.error(e.message || 'সমস্যা হয়েছে') } finally { setSavingPayment(false) }
+  }
+
+  // ── Print / Share ──────────────────────────────────────────────
+  const printSaleBill = (patient: Patient, items: any[], total: number, paid: number, doctor: string) => {
+    const due = total - paid
+    const w = window.open('', '_blank')!
+    w.document.write(`<!DOCTYPE html><html><head><title>বিল</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:24px;max-width:400px;margin:auto}h2{text-align:center;color:#059669}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#059669;color:white;padding:6px 8px;text-align:left}td{padding:5px 8px;border-bottom:1px solid #eee}.footer{text-align:center;margin-top:16px;font-size:10px;color:#888}</style></head><body><h2>💊 ফার্মেসি বিল</h2><p><b>রোগী:</b> ${patient.name} ${patient.phone ? `| ${patient.phone}` : ''}</p>${doctor ? `<p><b>ডাক্তার:</b> ${doctor}</p>` : ''}<table><tr><th>ওষুধ</th><th>পরিমাণ</th><th>দাম</th><th>মোট</th></tr>${items.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>₹${i.mrp}</td><td>₹${(i.qty * i.mrp).toFixed(0)}</td></tr>`).join('')}<tr><td colspan="3"><b>মোট</b></td><td><b>₹${total.toFixed(0)}</b></td></tr><tr><td colspan="3">পরিশোধ</td><td>₹${paid}</td></tr>${due > 0 ? `<tr><td colspan="3" style="color:red">বাকি</td><td style="color:red">₹${due.toFixed(0)}</td></tr>` : ''}</table><div class="footer">Sahayak AI ফার্মেসি</div></body></html>`)
+    w.document.close(); w.print()
+  }
+
+  const printHalkhataCard = (entry: HalkhataEntry) => {
+    const w = window.open('', '_blank')!
+    w.document.write(`<!DOCTYPE html><html><head><title>হালখাতা</title><meta charset="utf-8"><style>body{font-family:sans-serif;padding:0;margin:0;background:#f0fdf4}.card{max-width:380px;margin:20px auto;background:white;border:3px solid #059669;border-radius:16px;overflow:hidden}.header{background:linear-gradient(135deg,#059669,#10b981);color:white;padding:20px;text-align:center}.header h1{margin:0;font-size:26px}.body{padding:20px}.amount-box{background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:16px;text-align:center;margin:12px 0}.amount-value{font-size:32px;font-weight:700;color:#92400e}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#ecfdf5;color:#065f46;padding:6px 8px;text-align:left}td{padding:5px 8px;border-bottom:1px solid #f0fdf4}.footer{background:#ecfdf5;padding:12px;text-align:center;font-size:11px;color:#065f46}</style></head><body><div class="card"><div class="header"><h1>💊 হালখাতা</h1><p>${new Date().toLocaleDateString('bn-IN', { year: 'numeric', month: 'long' })}</p></div><div class="body"><b style="font-size:18px">${entry.patient.name}</b><p style="font-size:12px;color:#6b7280">${entry.patient.phone || ''} ${entry.patient.address ? '| ' + entry.patient.address : ''}</p><div class="amount-box"><div style="font-size:12px;color:#92400e">মোট বাকি</div><div class="amount-value">₹${entry.total_due.toFixed(0)}</div></div><table><tr><th>তারিখ</th><th>ওষুধ</th><th>বাকি</th></tr>${entry.purchases.slice(0, 8).map(p => `<tr><td>${p.purchase_date}</td><td>${p.item_name}</td><td style="color:#dc2626">₹${Number(p.due_amount).toFixed(0)}</td></tr>`).join('')}</table></div><div class="footer">অনুগ্রহ করে বাকি পরিশোধ করুন 🙏 | Sahayak AI</div></div></body></html>`)
+    w.document.close(); w.print()
+  }
+
+  const shareHalkhataWhatsApp = (entry: HalkhataEntry) => {
+    const phone = entry.patient.phone?.replace(/[^0-9]/g, '') || ''
+    let txt = `💊 *হালখাতা — বাকির বিবরণ*\n\nনাম: ${entry.patient.name}\nতারিখ: ${new Date().toLocaleDateString('bn-IN')}\n\n*মোট বাকি: ₹${entry.total_due.toFixed(0)}*\n\n`
+    entry.purchases.forEach(p => { txt += `• ${p.item_name} (${p.purchase_date}) — ₹${Number(p.due_amount).toFixed(0)}\n` })
+    txt += `\nঅনুগ্রহ করে পরিশোধ করুন 🙏\n— Sahayak AI ফার্মেসি`
+    window.open(phone ? `https://wa.me/91${phone}?text=${encodeURIComponent(txt)}` : `https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank')
+  }
+
+  const exportHalkhataExcel = () => {
+    let csv = 'রোগীর নাম,ফোন,ঠিকানা,ডাক্তার,মোট বাকি,শেষ কেনাকাটা\n'
+    halkhataData.forEach(h => { csv += `"${h.patient.name}","${h.patient.phone}","${h.patient.address}","${h.patient.doctor_name}",${h.total_due.toFixed(0)},"${h.last_purchase}"\n` })
+    downloadCSV(csv, `halkhata-${today()}.csv`); toast.success('Excel ডাউনলোড হয়েছে!')
+  }
 
   const TABS = [
     { id: 'stock', label: 'স্টক', icon: <Package size={13} /> },
