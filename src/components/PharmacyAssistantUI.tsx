@@ -177,6 +177,27 @@ export default function PharmacyAssistantUI({ userId: propUserId }: { userId?: s
     )
   }
 
+  // ── Derived stats ─────────────────────────────────────────────
+  const todayPurchases = recentSales.filter(s => s.purchase_date === today())
+  const todayRevenue = todayPurchases.reduce((s, r) => s + Number(r.total_amount || 0), 0)
+  const totalDue = halkhataData.reduce((s, h) => s + h.total_due, 0)
+  const lowStock = medicines.filter(m => m.stock <= m.min_stock)
+  const expired = medicines.filter(m => expiryStatus(m.expiry) === 'expired')
+  const expiringSoon = medicines.filter(m => ['critical', 'warning'].includes(expiryStatus(m.expiry)))
+
+  const filteredMeds = medicines.filter(m => {
+    const matchQ = !searchQ || m.name.toLowerCase().includes(searchQ.toLowerCase()) || m.generic.toLowerCase().includes(searchQ.toLowerCase())
+    const matchCat = catFilter === 'সব' || m.category === catFilter
+    return matchQ && matchCat
+  })
+  const filteredPatients = patients.filter(p =>
+    !patientSearch || p.name.toLowerCase().includes(patientSearch.toLowerCase()) || p.phone.includes(patientSearch)
+  )
+  const filteredHalkhata = halkhataData.filter(h =>
+    !halkhataSearch || h.patient.name.toLowerCase().includes(halkhataSearch.toLowerCase()) || h.patient.phone.includes(halkhataSearch)
+  )
+  const saleGross = saleItems.reduce((s, i) => s + (i.qty * i.mrp * (1 - i.discount / 100)), 0)
+
   return (
     <div className="space-y-3">
 
