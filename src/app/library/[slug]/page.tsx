@@ -13,6 +13,7 @@ import {
 import ReactMarkdown from 'react-markdown'
 import toast from 'react-hot-toast'
 import PharmacyAssistantUI from '@/components/PharmacyAssistantUI'
+import DokanCRMUI from '@/components/DokanCRMUI'
 import DoctorChamberUI from '@/components/DoctorChamberUI'
 import PathologyLabUI from '@/components/PathologyLabUI'
 import { useRequireAuth } from '@/lib/useRequireAuth'
@@ -766,6 +767,7 @@ export default function AgentDetailPage() {
     const s = agentSlug(agent.name)
     if (s === 'dokan-manager') return <DokanManagerUI />
     if (s === "pharmacy-assistant") return <PharmacyAssistantUI userId={user?.id} />
+    if (s === 'dokan-crm') return <DokanCRMUI userId={user?.id} />
     if (s === 'doctor-chamber-helper') return <DoctorChamberUI />
     if (s === 'pathology-lab-tracker') return <PathologyLabUI />
     if (s === 'gst-tax-helper') return <GSTHelperUI />
